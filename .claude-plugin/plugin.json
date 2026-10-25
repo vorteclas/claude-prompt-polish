@@ -1,1 +1,15 @@
-{ "name": "prompt-polish", "version": "0.2.0", "description": "Haiku rewrites each prompt you send with clean grammar and structured logic before Claude reads it", "types": "./types/index.d.ts" }
+{
+  "name": "prompt-polish",
+  "version": "0.3.0",
+  "description": "Rewrites each prompt you send into a clear, well-structured prompt that follows Anthropic's prompting best practices, before Claude reads it",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "model": {
+      "type": "string",
+      "title": "Polishing model",
+      "description": "Which Claude model rewrites your prompts: sonnet (best balance, default), haiku (fastest, cheapest) or opus (most careful, slowest)",
+      "default": "sonnet",
+      "options": ["sonnet", "haiku", "opus"]
+    }
+  }
+}
