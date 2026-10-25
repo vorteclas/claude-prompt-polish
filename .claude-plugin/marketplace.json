@@ -1,0 +1,5 @@
+{
+  "name": "renato-mods",
+  "owner": { "name": "Renato" },
+  "plugins": [{ "name": "prompt-polish", "source": "./" }]
+}

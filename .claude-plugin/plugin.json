@@ -1,0 +1,1 @@
+{ "name": "prompt-polish", "version": "0.2.0", "description": "Haiku rewrites each prompt you send with clean grammar and structured logic before Claude reads it", "types": "./types/index.d.ts" }
