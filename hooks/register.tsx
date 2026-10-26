@@ -7,6 +7,7 @@ import { GUIDE, SYSTEM } from './guide'
 // Start a prompt with this to send it exactly as typed.
 const RAW_PREFIX = '::'
 const ENABLED_KEY = 'enabled'
+const MODEL_KEY = 'model'
 const MIN_WORDS = 4
 // Characters kept of each turn shown to the polishing model.
 const TURN_CHARS = 1500
@@ -49,16 +50,22 @@ const toTurns = (rows: readonly SessionMessage[]): Turn[] => {
   }))
 }
 
+const MODELS = ['sonnet', 'haiku', 'opus']
+
 const label = (model: string) => model.charAt(0).toUpperCase() + model.slice(1)
 
 export const register: Register = (on, options) => {
-  const model = typeof options.model === 'string' ? options.model : 'sonnet'
+  const installed = typeof options.model === 'string' ? options.model : 'sonnet'
+  // A model picked with /polish <model> wins over the install option. Plugin
+  // options aren't /config rows, so $.config.set can't change that one.
+  const pickModel = (saved: unknown) =>
+    typeof saved === 'string' && MODELS.includes(saved) ? saved : installed
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'polish',
-      description: 'Turn automatic prompt polishing on or off',
-      argumentHint: 'on | off',
+      description: 'Turn prompt polishing on or off, or pick the model that polishes',
+      argumentHint: 'on | off | sonnet | haiku | opus',
     })
 
     return next(e)
@@ -66,11 +73,20 @@ export const register: Register = (on, options) => {
 
   on('command.run', { command: 'polish' }, async ($, e) => {
     const arg = e.args.trim().toLowerCase()
+
+    if (MODELS.includes(arg)) {
+      await $.store.set(MODEL_KEY, arg)
+      $.ui.toast(`Prompts are now polished by ${label(arg)}`)
+
+      return { text: `Prompts are now polished by ${label(arg)}.` }
+    }
+
     const isEnabled =
       arg === 'on' ? true : arg === 'off' ? false : (await $.store.get(ENABLED_KEY)) === false
     await $.store.set(ENABLED_KEY, isEnabled)
     if (!isEnabled) await update($, last, () => null)
     $.ui.toast(`Prompt polish ${isEnabled ? 'on' : 'off'}`)
+    const model = pickModel(await $.store.get(MODEL_KEY))
 
     return { text: `Prompt polish is ${isEnabled ? 'on' : 'off'} (model: ${model}).` }
   })
@@ -89,6 +105,7 @@ export const register: Register = (on, options) => {
     const isEnabled = (await $.store.get(ENABLED_KEY)) !== false
     if (!isEnabled || e.text.trim().split(/\s+/).length < MIN_WORDS) return next(e)
 
+    const model = pickModel(await $.store.get(MODEL_KEY))
     $.ui.status(`Polishing prompt with ${label(model)}…`)
     let text = ''
     let cachedTokens = 0

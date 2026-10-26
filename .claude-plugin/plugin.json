@@ -1,6 +1,6 @@
 {
   "name": "prompt-polish",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Rewrites each prompt you send into a clear, well-structured prompt that follows Anthropic's prompting best practices, before Claude reads it",
   "types": "./types/index.d.ts",
   "userConfig": {

@@ -23,7 +23,7 @@ When you install the mod you pick which model does the polishing:
 | `haiku` | Fastest and cheapest |
 | `opus` | Most careful, slowest |
 
-Change it later in `/config` under the plugin's options. Each prompt waits for one call to that model, billed like any other model call.
+Switch any time from the chat with `/polish sonnet`, `/polish haiku` or `/polish opus`. The choice is remembered across sessions and replaces the one made at install. Each prompt waits for one call to that model, billed like any other model call.
 
 ## Install
 

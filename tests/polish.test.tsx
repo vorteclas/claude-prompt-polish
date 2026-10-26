@@ -5,6 +5,13 @@ const ROUGH = 'so like can u fix the login bug its broken when password has spac
 const CLEAN = 'Fix the login bug: it breaks when the password contains spaces.'
 const USAGE = { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 2400 }
 const typed = (text: string) => ({ text, wait: false, origin: { kind: 'composer' } }) as const
+const polish = (args: string) =>
+  ({
+    command: 'polish',
+    args,
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 80 },
+  }) as const
 const row = (role: 'user' | 'assistant', text: string): SessionMessage => ({ role, text, toolUses: [] })
 
 let toasts: string[] = []
@@ -47,6 +54,15 @@ test('the model chosen at install does the polishing', { options: { model: 'haik
   expect(asked[0]?.model).toBe('haiku')
 })
 
+test('/polish haiku switches the model for the next prompts', async ($, on) => {
+  engine(on)
+
+  const r = await $.command.run(polish('haiku'))
+  await $.prompt.submit(typed(ROUGH))
+
+  expect('text' in r && r.text).toContain('Haiku')
+  expect(asked[0]?.model).toBe('haiku')
+})
 test('the recent conversation rides along, cached so the next prompt reuses it', async ($, on) => {
   const rows = [
     row('user', 'add rate limiting to the upload route'),
@@ -76,7 +92,7 @@ test('the :: prefix and /polish off send the prompt as typed', async ($, on) => 
   const raw = await $.prompt.submit(typed(`:: ${ROUGH}`))
   expect('text' in raw && raw.text).toBe(ROUGH)
 
-  await $.command.run({ command: 'polish', args: 'off' })
+  await $.command.run(polish('off'))
   const off = await $.prompt.submit(typed(ROUGH))
   expect('text' in off && off.text).toBe(ROUGH)
   expect(asked.length).toBe(0)
@@ -93,7 +109,7 @@ test('a failed rewrite sends the prompt as typed', async ($, on) => {
 const BAND = {
   plugin: 'prompt-polish',
   component: 'AbovePrompt',
-  props: { hasSurvey: false, isWorking: false, maxRows: 20, bodyColumns: 80, scroll: { offset: 0, bodyRows: 19 } },
+  props: { hasSurvey: false, isWorking: false, maxRows: 20, bodyColumns: 80, scroll: { offset: 0, bodyRows: 19 }, view: {} },
 } as const
 
 test('the band shows the polished prompt and the cache read until hidden', async ($, on) => {
